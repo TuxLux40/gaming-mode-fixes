@@ -2,6 +2,8 @@
 
 Patches and scripts for CachyOS Deckify (and similar SteamOS-like distros) where Decky Loader and Sunshine are both installed but don't play well together out of the box.
 
+> **Already applied:** The Game Theme Music settings fix (`fix-gamethememusic-settings.sh`) has already been run — `config.json` is correct. The decky-sunshine patch still needs `! sudo bash apply-fixes.sh`.
+
 ## Issues fixed
 
 ### 1. Decky Loader appearing broken / slow to initialise in gaming mode
@@ -28,7 +30,41 @@ The Flatpak version of Sunshine (`dev.lizardbyte.app.Sunshine`) may also be inst
 
 ---
 
-## Fix
+### 3. Game Theme Music settings not persisting / always resetting to defaults
+
+**Symptom:** Changes made in the Game Theme Music plugin (volume, mute state, invidious instance, etc.) don't survive a plugin reload — everything reverts to defaults.
+
+**Root cause:** Decky's `SettingsManager` stores settings as a flat JSON object `{"key": value, ...}` and `getSetting(key)` calls `self.settings.get(key, default)` directly on that top-level dict. The `config.json` written by a previous version of the plugin wrapped everything one level deeper:
+
+```json
+{
+    "settings": {          ← extra nesting the SettingsManager doesn't expect
+        "defaultMuted": false,
+        "volume": 1,
+        ...
+    }
+}
+```
+
+So every `getSetting("defaultMuted")` lookup found nothing at the top level and returned the hardcoded default. Any `setSetting(...)` call then wrote the key at the top level alongside the stale `"settings"` blob, making the file a mix of both formats.
+
+**Fix:** Flatten `config.json` by promoting the inner object to the top level. Already applied — the file is now:
+
+```json
+{
+    "defaultMuted": false,
+    "useYtDlp": false,
+    "downloadAudio": true,
+    "invidiousInstance": "https://yewtu.be",
+    "volume": 1
+}
+```
+
+Run `bash fix-gamethememusic-settings.sh` if the file ever gets corrupted back to the nested format (e.g. after a plugin reinstall that ships a broken default).
+
+---
+
+## Fix (decky-sunshine)
 
 Patch `decky-sunshine`'s `sunshine.py` to:
 
@@ -79,8 +115,9 @@ You should see `Decky Sunshine loaded` within a second or two of startup (no 60-
 ```
 gaming-mode-fixes/
 ├── README.md
-├── apply-fixes.sh                              # apply patch + restart service
-├── revert-fixes.sh                             # restore original + restart service
+├── apply-fixes.sh                              # apply decky-sunshine patch + restart service (needs sudo)
+├── revert-fixes.sh                             # restore decky-sunshine original + restart service (needs sudo)
+├── fix-gamethememusic-settings.sh              # flatten Game Theme Music config.json (no sudo needed)
 └── patches/
     └── decky-sunshine-native-service.patch     # the actual diff
 ```
