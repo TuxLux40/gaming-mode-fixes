@@ -123,10 +123,24 @@ You should see `Decky Sunshine loaded` within a second or two of startup (no 60-
 - Default `OLLAMA_KEEP_ALIVE` (5 minutes) — model stays loaded in VRAM between requests so follow-up questions are instant; evicted after 5 minutes of inactivity
 - `ollama` user added to the `render` group — required to access `/dev/kfd` and `/dev/dri/renderD128` for ROCm/GPU inference
 
-**Install:**
+**Install Ollama service (needs sudo):**
 
 ```bash
 sudo bash install-ollama.sh
+```
+
+**Install game-start VRAM eviction watcher (no sudo):**
+
+```bash
+bash setup-ollama-game-watcher.sh
+```
+
+This installs a systemd **user** service (`ollama-game-watcher`) that polls every 2 seconds for `reaper SteamLaunch AppId=…` — the process Steam spawns exclusively when a game is running. On the first detection after a game launch it calls `POST /api/generate` with `keep_alive=0` on every currently-loaded Ollama model, which makes Ollama evict them from VRAM immediately. When the game exits, Ollama reloads the model on the next request at normal speed.
+
+```
+journalctl --user -u ollama-game-watcher -f
+# [ollama-game-watcher] Game started — evicting from VRAM: llama3.2:latest
+# [ollama-game-watcher] Game exited — Ollama will load models on next request.
 ```
 
 **Point OpenWebUI at** (use whichever reaches this machine from Proxmox):
@@ -161,6 +175,9 @@ gaming-mode-fixes/
 ├── revert-fixes.sh                             # restore decky-sunshine original + restart service (needs sudo)
 ├── fix-gamethememusic-settings.sh              # flatten Game Theme Music config.json (no sudo needed)
 ├── install-ollama.sh                           # install + configure Ollama for Tailscale + GPU (needs sudo)
+├── setup-ollama-game-watcher.sh                # install VRAM eviction watcher as user service (no sudo)
+├── scripts/
+│   └── ollama-game-watcher                     # watcher script (installed to ~/.local/bin by setup script)
 └── patches/
     └── decky-sunshine-native-service.patch     # the actual diff
 ```
