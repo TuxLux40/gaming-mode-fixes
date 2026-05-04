@@ -119,10 +119,9 @@ You should see `Decky Sunshine loaded` within a second or two of startup (no 60-
 **Setup:**
 
 - Installed via `pacman -S ollama` (CachyOS `cachyos-extra-v3/ollama 0.23.0`, bundles its own ROCm runtime)
-- Bound to Tailscale IP `100.66.239.31:11434` only — not exposed on the LAN
+- Bound to `0.0.0.0:11434` — reachable on all interfaces (LAN at `192.168.178.100`, Tailscale at `100.66.239.31`, loopback)
 - `OLLAMA_KEEP_ALIVE=0` — model is evicted from VRAM immediately after each inference completes, so the RX 7600's 8 GB is fully available to games while Ollama is idle
 - `ollama` user added to the `render` group — required to access `/dev/kfd` and `/dev/dri/renderD128` for ROCm/GPU inference
-- Service ordered `After=tailscaled.service` with a 30-second `ExecStartPre` wait for the Tailscale interface so Ollama never tries to bind before the IP is up
 
 **Install:**
 
@@ -130,9 +129,10 @@ You should see `Decky Sunshine loaded` within a second or two of startup (no 60-
 sudo bash install-ollama.sh
 ```
 
-**Point OpenWebUI at:**
+**Point OpenWebUI at** (use whichever reaches this machine from Proxmox):
 ```
-http://100.66.239.31:11434
+http://100.66.239.31:11434   ← Tailscale
+http://192.168.178.100:11434 ← LAN
 ```
 
 **Verify GPU is being used:**
