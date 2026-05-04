@@ -30,7 +30,6 @@ mkdir -p "$DROPIN_DIR"
 cat > "$DROPIN_FILE" << EOF
 [Service]
 Environment="OLLAMA_HOST=0.0.0.0:${OLLAMA_PORT}"
-Environment="OLLAMA_KEEP_ALIVE=0"
 EOF
 
 # ── 4. Enable and start ───────────────────────────────────────────────────────

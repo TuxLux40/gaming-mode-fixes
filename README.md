@@ -120,7 +120,7 @@ You should see `Decky Sunshine loaded` within a second or two of startup (no 60-
 
 - Installed via `pacman -S ollama` (CachyOS `cachyos-extra-v3/ollama 0.23.0`, bundles its own ROCm runtime)
 - Bound to `0.0.0.0:11434` — reachable on all interfaces (LAN at `192.168.178.100`, Tailscale at `100.66.239.31`, loopback)
-- `OLLAMA_KEEP_ALIVE=0` — model is evicted from VRAM immediately after each inference completes, so the RX 7600's 8 GB is fully available to games while Ollama is idle
+- Default `OLLAMA_KEEP_ALIVE` (5 minutes) — model stays loaded in VRAM between requests so follow-up questions are instant; evicted after 5 minutes of inactivity
 - `ollama` user added to the `render` group — required to access `/dev/kfd` and `/dev/dri/renderD128` for ROCm/GPU inference
 
 **Install:**
