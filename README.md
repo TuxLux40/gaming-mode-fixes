@@ -110,6 +110,48 @@ You should see `Decky Sunshine loaded` within a second or two of startup (no 60-
 
 ---
 
+---
+
+### 4. Ollama as a background server (gaming mode + Tailscale)
+
+**Goal:** Run Ollama on the gaming machine so that OpenWebUI on Proxmox can reach it via Tailscale — even while Steam gaming mode is active. When Ollama is idle the GPU VRAM is fully released so games are not starved.
+
+**Setup:**
+
+- Installed via `pacman -S ollama` (CachyOS `cachyos-extra-v3/ollama 0.23.0`, bundles its own ROCm runtime)
+- Bound to Tailscale IP `100.66.239.31:11434` only — not exposed on the LAN
+- `OLLAMA_KEEP_ALIVE=0` — model is evicted from VRAM immediately after each inference completes, so the RX 7600's 8 GB is fully available to games while Ollama is idle
+- `ollama` user added to the `render` group — required to access `/dev/kfd` and `/dev/dri/renderD128` for ROCm/GPU inference
+- Service ordered `After=tailscaled.service` with a 30-second `ExecStartPre` wait for the Tailscale interface so Ollama never tries to bind before the IP is up
+
+**Install:**
+
+```bash
+sudo bash install-ollama.sh
+```
+
+**Point OpenWebUI at:**
+```
+http://100.66.239.31:11434
+```
+
+**Verify GPU is being used:**
+```bash
+journalctl -u ollama -f
+# should show "AMD Radeon RX 7600" or similar on first model load
+```
+
+**VRAM note:** The RX 7600 has 8 GB. Common model sizes at Q4_K_M quantisation:
+| Model | VRAM |
+|-------|------|
+| 7B | ~4.5 GB |
+| 13B | ~8 GB (tight) |
+| 3B | ~2 GB |
+
+With `OLLAMA_KEEP_ALIVE=0`, VRAM is freed as soon as the response finishes — games get the full 8 GB back within seconds of the last request.
+
+---
+
 ## Files
 
 ```
@@ -118,6 +160,7 @@ gaming-mode-fixes/
 ├── apply-fixes.sh                              # apply decky-sunshine patch + restart service (needs sudo)
 ├── revert-fixes.sh                             # restore decky-sunshine original + restart service (needs sudo)
 ├── fix-gamethememusic-settings.sh              # flatten Game Theme Music config.json (no sudo needed)
+├── install-ollama.sh                           # install + configure Ollama for Tailscale + GPU (needs sudo)
 └── patches/
     └── decky-sunshine-native-service.patch     # the actual diff
 ```
@@ -128,8 +171,10 @@ gaming-mode-fixes/
 
 | Component | Version tested |
 |-----------|---------------|
-| OS | CachyOS Deckify 7.0.2-2 |
+| OS | CachyOS Deckify 7.0.3-1 |
 | Decky Loader | v3.2.3 |
 | decky-sunshine plugin | 2025.10.27-dddf365 |
 | Sunshine (native) | system package via pacman |
 | Sunshine (Flatpak) | `dev.lizardbyte.app.Sunshine` 2025.924.154138 |
+| Ollama | 0.23.0 (CachyOS cachyos-extra-v3) |
+| GPU | AMD Radeon RX 7600 (gfx1102 / Navi 33) |
