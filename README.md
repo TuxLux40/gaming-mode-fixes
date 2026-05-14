@@ -166,6 +166,22 @@ With `OLLAMA_KEEP_ALIVE=0`, VRAM is freed as soon as the response finishes — g
 
 ---
 
+## Per-game fixes
+
+Game-specific fixes live in their own subfolders, each with their own README:
+
+| Folder | Game | Issues addressed |
+|--------|------|------------------|
+| [`binary-domain/`](binary-domain/README.md) | Binary Domain (AppID 203750) | "Graphics device is invalid" error, no sound (CRI/XAudio2), gamepad not working in gameplay |
+
+## Peripheral fixes
+
+| Folder | Hardware | Issues addressed |
+|--------|----------|------------------|
+| [`cooler-display/`](cooler-display/README.md) | Thermalright CPU cooler LCD/LED | `trcc-linux` first-run setup, usb-storage quirks for LCD enumeration |
+
+---
+
 ## Files
 
 ```
@@ -178,8 +194,16 @@ gaming-mode-fixes/
 ├── setup-ollama-game-watcher.sh                # install VRAM eviction watcher as user service (no sudo)
 ├── scripts/
 │   └── ollama-game-watcher                     # watcher script (installed to ~/.local/bin by setup script)
-└── patches/
-    └── decky-sunshine-native-service.patch     # the actual diff
+├── patches/
+│   └── decky-sunshine-native-service.patch     # the actual diff
+├── binary-domain/                              # Binary Domain (AppID 203750) per-game fix
+│   ├── README.md
+│   ├── fix-binary-domain-guid.sh
+│   ├── fix-binary-domain.sh
+│   └── apply-binary-domain-on-steam-exit.sh
+└── cooler-display/                             # Thermalright cooler TRCC setup
+    ├── README.md
+    └── setup-trcc.sh                           # sudo bash setup-trcc.sh
 ```
 
 ---

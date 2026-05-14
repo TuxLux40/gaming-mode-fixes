@@ -8,6 +8,10 @@
 #
 # This is unfixed in trcc-linux through at least v9.5.11. Re-run after upgrades.
 #
+# NOTE: If you followed the setup guide and switched to the user service
+# (trcc.service), you do NOT need this script. It's only needed if you're
+# using trccd.service (the system daemon).
+#
 # Usage: sudo bash patch-trcc-daemon.sh
 
 set -euo pipefail
