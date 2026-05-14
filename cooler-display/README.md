@@ -48,6 +48,7 @@ system sensor APIs and sends them to the cooler over USB every 50ms.
 |--------|-------------|-------------|
 | `setup-trcc.sh` | One-time first-install setup (udev rules, permissions, module quirks) | Once after installing trcc-linux for the first time |
 | `patch-trcc-daemon.sh` | Fixes the display staying blank (metrics loop bug) | After every `pacman -S trcc-linux` upgrade |
+| `trcc-gui.sh` | Launch trcc GUI without fighting the daemon | Whenever you want to change themes/settings |
 
 ---
 
@@ -183,6 +184,21 @@ Description = Re-applying trcc daemon metrics loop patch...
 When = PostTransaction
 Exec = /bin/bash /home/oliver/Projects/gaming-mode-fixes/cooler-display/patch-trcc-daemon.sh
 ```
+
+---
+
+## Problem 3: `trcc gui` doesn't change the display
+
+`trccd.service` holds the USB device. If you run `trcc gui` at the same time,
+two processes fight over it — the daemon overwrites the GUI's changes within 50ms.
+
+**Fix:** Use the wrapper that hands the device off cleanly:
+
+```bash
+bash ~/Projects/gaming-mode-fixes/cooler-display/trcc-gui.sh
+```
+
+It stops the daemon, opens the GUI, and restarts the daemon when you close the GUI.
 
 ---
 
