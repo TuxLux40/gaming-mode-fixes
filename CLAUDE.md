@@ -14,6 +14,7 @@ gaming-mode-fixes/
 ├── sync-models-to-nas.sh                      # Ollama model NAS sync
 ├── patches/
 │   └── decky-sunshine-native-service.patch
+├── fix-gamescope-vulkan-layers.sh             # Gamescope swapchain hook fix (diagnose/disable/enable)
 ├── scripts/                                   # (placeholder for future helpers)
 ├── binary-domain/                             # ← Binary Domain (AppID 203750) fix
 │   ├── README.md                              #     full recipe + root-cause notes
@@ -24,6 +25,14 @@ gaming-mode-fixes/
     ├── README.md                              #     trcc-linux setup + cooler USB notes
     └── setup-trcc.sh                          #     sudo wrapper around `trcc setup-udev`
 ```
+
+## Gamescope Vulkan layer fix
+
+**Symptom:** "CreateSwapchainKHR … Hooking has failed somewhere! You may have a bad Vulkan layer interfering."
+
+**Root cause:** A Vulkan implicit layer (MangoHud, Mesa overlay, OBS vkcapture, AMD switchable graphics) intercepts `vkCreateSwapchainKHR` before Gamescope's hook, wrapping the swapchain object into a foreign type that Gamescope rejects.
+
+Script: `fix-gamescope-vulkan-layers.sh` — diagnose (default), disable (`--disable`, needs sudo for `/usr` layers), or re-enable (`--enable`).
 
 ## Per-game fixes
 

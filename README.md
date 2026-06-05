@@ -166,6 +166,56 @@ With `OLLAMA_KEEP_ALIVE=0`, VRAM is freed as soon as the response finishes — g
 
 ---
 
+### 5. Gamescope swapchain hook failure ("You may have a bad Vulkan layer interfering")
+
+**Symptom:** A dialog appears at game launch (or Gamescope exits immediately) with:
+
+```
+CreateSwapchainKHR: Creating swapchain for non-Gamescope swapchain.
+Hooking has failed somewhere!
+You may have a bad Vulkan layer interfering.
+Press OK to try to power through this error, or Cancel to stop.
+```
+
+**Root cause:** Gamescope hooks `vkCreateSwapchainKHR` via a Vulkan layer. If another
+Vulkan *implicit* layer intercepts the call first and wraps the swapchain object,
+Gamescope's hook sees a foreign type instead of the real swapchain and aborts.
+
+Common offenders registered as implicit layers on this system:
+
+| Layer name | Installed by |
+|---|---|
+| `VK_LAYER_MANGOHUD_overlay_x86_64` | MangoHud |
+| `VK_LAYER_MESA_overlay` | Mesa |
+| `VK_LAYER_OBS_hook` | OBS `obs-vkcapture` |
+| `VK_LAYER_AMD_switchable_graphics_1` | AMDGPU driver extras |
+
+**Fix (per-game, safest):** Add the layer's disable env var to the game's Steam
+launch options. The script below detects which layers are installed and prints the
+exact string to paste:
+
+```bash
+bash fix-gamescope-vulkan-layers.sh
+```
+
+Example output for a system with MangoHud:
+```
+  Option A — Per-game Steam launch option (safest, per-title):
+    DISABLE_MANGOHUD=1 %command%
+```
+
+**Fix (system-wide):** Rename the offending layer JSON files to `.json.disabled` so
+Gamescope never sees them (no data lost; fully reversible):
+
+```bash
+bash fix-gamescope-vulkan-layers.sh --disable   # needs sudo for /usr layers
+bash fix-gamescope-vulkan-layers.sh --enable    # restore all .json.disabled files
+```
+
+No reboot needed — relaunch Steam or Gamescope to pick up the change.
+
+---
+
 ## Per-game fixes
 
 Game-specific fixes live in their own subfolders, each with their own README:
