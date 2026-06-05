@@ -58,20 +58,28 @@ that needs a force restart** and the **`CreateSwapchainKHR: Creating swapchain
 for non-Gamescope swapchain. Hooking has failed somewhere!`** popup (Pragmata,
 RE9/REquiem) are the same bug.
 
-**Root cause:** stock `/usr/lib/systemd/user/gamescope-session.service` does
-`UnsetEnvironment=DISPLAY XAUTHORITY` but not `WAYLAND_DISPLAY`. Plasma leaks
-`WAYLAND_DISPLAY=wayland-0` into the `systemctl --user` manager environment;
-gamescope inherits it, auto-selects the **nested wayland backend**, fails with
-`Failed to connect to wayland socket: wayland-0`, exits 1, and plasmalogin
-relogin-storms → boot appears stuck. Race on the leaked var = intermittent. When
-boot falls out of game mode, games run on plain Plasma and the global gamescope
-WSI implicit layer throws the swapchain popup — a symptom, not a Proton-prefix
-problem (deleting Proton files does nothing).
+**Root cause (confirmed 2026-06-05): user lingering.** `loginctl enable-linger
+oliver` (set 2026-05-29, likely for trccd/honcho) makes `user@1000.service` start
+at **boot** parented to a seatless logind session of class `manager` — before
+plasmalogin autologins onto seat0. gamescope runs under that one manager and asks
+logind for DRM master on `/dev/dri/card1`; logind grants the GPU only to the
+session active on seat0, so the seatless-parented gamescope is **denied**
+(`Could not take device: Device or resource busy` → `Could not open KMS device`
+→ `Failed to create backend` → **SIGSEGV**) → plasmalogin `Relogin=true` storms →
+boot hangs. Warm-reboot-fails / cold-boot-works is a race over which session
+births the manager (warm → ghost wins → seatless gamescope; cold → seat0 login
+wins). All 41 `gamescope-session-cachyos` files are stock (`pacman -Qkk` clean) —
+bug was always user config.
 
-**Fix:** `gamescope-session/apply-gamescope-boot-fix.sh` installs a user drop-in
-adding `WAYLAND_DISPLAY` to `UnsetEnvironment`, so gamescope's backend
-auto-detection falls through to DRM/KMS. Verify next boot with
-`journalctl -b 0 | grep -iE 'Started Gamescope Session|wayland socket'`.
+**Fix:** `loginctl disable-linger oliver` (reverses the user change; safe because
+the box autologins, so user services still start). Verify next boot:
+`journalctl -b 0 | grep -iE 'Started Gamescope Session|Could not open KMS|Device or resource busy'`.
+Full mental-model + ASCII diagrams: `gamescope-session/session-device-model.md`.
+
+The `gamescope-session.service.d/override.conf` WAYLAND_DISPLAY drop-in is KEPT as
+insurance against a *separate* Plasma-leak failure mode (gamescope picking the
+nested wayland backend), but is **not** the linger fix. Earlier Sunshine-override
+theory was disproven (Sunshine never initialized in the failed boots).
 
 ## Peripheral fixes
 
