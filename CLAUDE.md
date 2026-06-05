@@ -20,6 +20,11 @@ gaming-mode-fixes/
 │   ├── fix-binary-domain-guid.sh              #     run the config tool to regen GUID
 │   ├── fix-binary-domain.sh                   #     set launch options + disable Steam Input
 │   └── apply-binary-domain-on-steam-exit.sh   #     optional background watcher
+├── gamescope-session/                         # ← Game Mode boot-loop fix
+│   ├── README.md                              #     root cause + verify steps
+│   ├── apply-gamescope-boot-fix.sh            #     installs the user drop-in
+│   └── gamescope-session.service.d/
+│       └── override.conf                      #     adds WAYLAND_DISPLAY to UnsetEnvironment
 └── cooler-display/                            # ← Thermalright cooler TRCC setup
     ├── README.md                              #     trcc-linux setup + cooler USB notes
     └── setup-trcc.sh                          #     sudo wrapper around `trcc setup-udev`
@@ -43,6 +48,30 @@ Documented in `binary-domain/README.md`. Three issues addressed:
 
 Even with the gamepad fix the game has only partial controller support — known issue
 with the PC port itself, not the Linux port.
+
+## Game Mode (gamescope session) fixes
+
+### Boot loop / "non-Gamescope swapchain" Vulkan popup
+
+Documented in `gamescope-session/README.md`. Both the intermittent **boot hang
+that needs a force restart** and the **`CreateSwapchainKHR: Creating swapchain
+for non-Gamescope swapchain. Hooking has failed somewhere!`** popup (Pragmata,
+RE9/REquiem) are the same bug.
+
+**Root cause:** stock `/usr/lib/systemd/user/gamescope-session.service` does
+`UnsetEnvironment=DISPLAY XAUTHORITY` but not `WAYLAND_DISPLAY`. Plasma leaks
+`WAYLAND_DISPLAY=wayland-0` into the `systemctl --user` manager environment;
+gamescope inherits it, auto-selects the **nested wayland backend**, fails with
+`Failed to connect to wayland socket: wayland-0`, exits 1, and plasmalogin
+relogin-storms → boot appears stuck. Race on the leaked var = intermittent. When
+boot falls out of game mode, games run on plain Plasma and the global gamescope
+WSI implicit layer throws the swapchain popup — a symptom, not a Proton-prefix
+problem (deleting Proton files does nothing).
+
+**Fix:** `gamescope-session/apply-gamescope-boot-fix.sh` installs a user drop-in
+adding `WAYLAND_DISPLAY` to `UnsetEnvironment`, so gamescope's backend
+auto-detection falls through to DRM/KMS. Verify next boot with
+`journalctl -b 0 | grep -iE 'Started Gamescope Session|wayland socket'`.
 
 ## Peripheral fixes
 
