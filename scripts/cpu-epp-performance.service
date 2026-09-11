@@ -1,0 +1,11 @@
+[Unit]
+Description=Set CPU EPP to performance (gaming PC)
+After=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'for f in /sys/devices/system/cpu/cpufreq/policy*/energy_performance_preference; do echo performance > "$f"; done'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
