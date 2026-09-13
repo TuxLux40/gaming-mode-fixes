@@ -25,6 +25,9 @@ gaming-mode-fixes/
 │   ├── apply-gamescope-boot-fix.sh            #     installs the user drop-in
 │   └── gamescope-session.service.d/
 │       └── override.conf                      #     adds WAYLAND_DISPLAY to UnsetEnvironment
+├── controller-config/                         # ← Blank Controller Settings panel fix
+│   ├── README.md                              #     root cause + verify steps
+│   └── fix-blank-controller-config.py         #     clears the stale config selection via CDP
 └── cooler-display/                            # ← Thermalright cooler TRCC setup
     ├── README.md                              #     trcc-linux setup + cooler USB notes
     └── setup-trcc.sh                          #     sudo wrapper around `trcc setup-udev`
@@ -48,6 +51,31 @@ Documented in `binary-domain/README.md`. Three issues addressed:
 
 Even with the gamepad fix the game has only partial controller support — known issue
 with the PC port itself, not the Linux port.
+
+## Controller fixes
+
+### Blank Controller Settings panel (any game, Steam Input enabled)
+
+Documented in `controller-config/README.md`. First confirmed on **HITMAN World
+of Assassination (AppID 1659040)**, 2026-09-13, but the bug is generic.
+
+**Symptom:** opening Controller Settings for a game in Gaming Mode shows only
+the title bar and footer — no layout name, no View/Edit Layout buttons.
+Confirmed this is unrelated to the per-game Steam Input on/off setting.
+
+**Root cause:** Steam's per-app controller config selection resolved to
+nothing, so it silently fell back to the generic built-in template
+(`controller_base/templates/controller_neptune_gamepad_fps.vdf`, visible in
+`~/.steam/steam/logs/controller_ui.txt`) instead of a real personal/Community/
+developer layout. The gamepadui panel has no metadata to render against in
+that state and shows an empty shell instead of an error.
+
+**Fix:** `controller-config/fix-blank-controller-config.py <appid>` — calls
+`SteamClient.Input.ClearSelectedConfigForApp(appid, 0)` over Steam's CEF
+remote-debugging port (port 8080 on this machine) to clear the stale
+selection, then reopens Controller Settings so Steam re-resolves it. No UI
+button exposes this — the panel that would normally offer "change layout" is
+the one that's blank.
 
 ## Game Mode (gamescope session) fixes
 
