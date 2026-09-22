@@ -56,26 +56,14 @@ with the PC port itself, not the Linux port.
 
 ### Blank Controller Settings panel (any game, Steam Input enabled)
 
-Documented in `controller-config/README.md`. First confirmed on **HITMAN World
-of Assassination (AppID 1659040)**, 2026-09-13, but the bug is generic.
+Full symptom/root-cause writeup now lives in the public skill (moved
+2026-09-22, was duplicated here): `~/Projects/skills/skills/steam-debugger/reference/tribal.md`,
+entry "Controller Settings screen is completely blank". First confirmed on
+HITMAN World of Assassination (AppID 1659040), 2026-09-13; the bug is
+generic, not game-specific.
 
-**Symptom:** opening Controller Settings for a game in Gaming Mode shows only
-the title bar and footer — no layout name, no View/Edit Layout buttons.
-Confirmed this is unrelated to the per-game Steam Input on/off setting.
-
-**Root cause:** Steam's per-app controller config selection resolved to
-nothing, so it silently fell back to the generic built-in template
-(`controller_base/templates/controller_neptune_gamepad_fps.vdf`, visible in
-`~/.steam/steam/logs/controller_ui.txt`) instead of a real personal/Community/
-developer layout. The gamepadui panel has no metadata to render against in
-that state and shows an empty shell instead of an error.
-
-**Fix:** `controller-config/fix-blank-controller-config.py <appid>` — calls
-`SteamClient.Input.ClearSelectedConfigForApp(appid, 0)` over Steam's CEF
-remote-debugging port (port 8080 on this machine) to clear the stale
-selection, then reopens Controller Settings so Steam re-resolves it. No UI
-button exposes this — the panel that would normally offer "change layout" is
-the one that's blank.
+**Fix:** `controller-config/fix-blank-controller-config.py <appid>` (same
+script now also lives in the skill's `scripts/` folder).
 
 ## Game Mode (gamescope session) fixes
 
