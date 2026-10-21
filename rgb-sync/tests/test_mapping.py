@@ -70,3 +70,10 @@ def test_calibration_gain_and_gamma():
     out = calibrate([[255, 255, 255], [128, 128, 128]], [1.0, 0.5, 1.0], [1.0, 1.0, 2.0])
     assert out[0].tolist() == [255, 128, 255]
     assert out[1][2] < out[1][0]  # gamma 2 darkens blue mid-tones
+
+
+def test_value_gamma_lifts_dim_colors_and_keeps_hue():
+    pipe = ColorPipeline(1.0, [0, 1], 0, 1.0, value_gamma=0.5)
+    out = pipe.process(np.array([[60, 30, 15]], np.float32), 0.05)[0]
+    assert 120 < out.max() < 130  # 60 -> ~124
+    assert abs(out[1] / out[0] - 0.5) < 0.01 and abs(out[2] / out[0] - 0.25) < 0.01

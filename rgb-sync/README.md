@@ -46,7 +46,7 @@ other, desktop-only CachyOS install).
 | `capture.py` | `pipewiresrc ! max-framerate ! videorate ! videoscale ! videoconvert ! appsink` → 64×36 RGB frames. Frames are dropped to the update rate *before* scaling. In Game Mode it connects straight to gamescope's `Video/Source` node named `gamescope`, with no permission prompt. |
 | `portal.py` | Desktop Mode: ScreenCast portal with `persist_mode=2`. KDE asks once, and the restore token in `~/.local/state/rgb-sync/` skips the dialog afterwards. |
 | `mapping.py` | Fans: LED *i* looks outward from the screen center at `start_angle + i·24°` (clockwise from 12 o'clock) and samples a patch just inside the border. Soundbar: 14 patches along the top-left → bottom-right diagonal, LED 1 = leftmost. |
-| `color.py` | Saturation boost → near-black dims to off → exponential smoothing → per-device gain/gamma. |
+| `color.py` | Saturation boost → near-black dims to off → brightness lift (`value_gamma`, keeps hue; without it dark movie frames leave the linear fans nearly off) → exponential smoothing → per-device gain/gamma. |
 | `service.py` | Prefers the gamescope node, falls back to the portal, rescans every 2 s while there is no source, and switches to gamescope when one appears. In gaps the LEDs keep the last screen colors. Only changed zones are sent. |
 | `output.py` | Finds devices by name/description, sets Direct mode, sends per-LED colors. |
 
@@ -59,6 +59,7 @@ Hardware facts it relies on (measured 2026-10-21):
   hard near full brightness (255 vs 128 vs 100/100/255 look alike), so color
   calibration has no visible effect on it. A slight warm tint seen head-on
   comes from its separate R/G/B dies.
+- Fan patches sit 30 % inside the screen border (`band = 0.3`); at 0.15 they mostly hit panels, HUD and letterbox bars.
 - Cost: ~3 % of one core at 20 Hz with constantly changing frames (main
   Python thread ~2 %, PipeWire thread ~0.9 %).
 

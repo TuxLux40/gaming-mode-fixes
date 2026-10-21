@@ -28,6 +28,8 @@ DEFAULTS = {
         "dark_floor": [12, 40],
         # Exponential smoothing time constant.
         "smoothing_ms": 180,
+        # <1 lifts dim colors (0.5: 30->85, 60->124, 100->160) without changing hue.
+        "value_gamma": 0.5,
         "brightness": 1.0,
     },
     "fans": {

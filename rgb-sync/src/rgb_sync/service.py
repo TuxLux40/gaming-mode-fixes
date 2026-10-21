@@ -33,8 +33,9 @@ class Service:
             w, h, fans["patch"])
         self.bar_sampler = Sampler(diagonal_points(bar["leds"], w, h, bar["diagonal"]), w, h, bar["patch"])
         col = cfg["color"]
-        self.fan_pipe = ColorPipeline(col["saturation"], col["dark_floor"], col["smoothing_ms"], col["brightness"])
-        self.bar_pipe = ColorPipeline(col["saturation"], col["dark_floor"], col["smoothing_ms"], col["brightness"])
+        args = (col["saturation"], col["dark_floor"], col["smoothing_ms"], col["brightness"], col["value_gamma"])
+        self.fan_pipe = ColorPipeline(*args)
+        self.bar_pipe = ColorPipeline(*args)
         self.token_file = config_mod.state_dir() / "portal_restore_token"
         self.out = None
         self.stopping = False
