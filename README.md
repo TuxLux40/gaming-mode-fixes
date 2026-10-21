@@ -179,6 +179,7 @@ Game-specific fixes live in their own subfolders, each with their own README:
 | Folder | Hardware | Issues addressed |
 |--------|----------|------------------|
 | [`cooler-display/`](cooler-display/README.md) | Thermalright CPU cooler LCD/LED | `trcc-linux` first-run setup, usb-storage quirks for LCD enumeration |
+| [`rgb-sync/`](rgb-sync/README.md) | Razer Leviathan V2 X soundbar + ARGB fans (ASUS Aura USB) | single RGB owner (OpenRGB server), zoned screen-color sync in Game Mode and Desktop Mode |
 
 ---
 
@@ -201,9 +202,15 @@ gaming-mode-fixes/
 │   ├── fix-binary-domain-guid.sh
 │   ├── fix-binary-domain.sh
 │   └── apply-binary-domain-on-steam-exit.sh
-└── cooler-display/                             # Thermalright cooler TRCC setup
+├── cooler-display/                             # Thermalright cooler TRCC setup
+│   ├── README.md
+│   └── setup-trcc.sh                           # sudo bash setup-trcc.sh
+└── rgb-sync/                                   # screen-reactive RGB (soundbar + fans) via OpenRGB
     ├── README.md
-    └── setup-trcc.sh                           # sudo bash setup-trcc.sh
+    ├── setup.sh / revert.sh                    # user units + venv + config link (no sudo)
+    ├── systemd/                                # openrgb-server + rgb-screen-sync user units
+    ├── src/rgb_sync/                           # capture, mapping, color, output, service
+    └── tests/
 ```
 
 ---

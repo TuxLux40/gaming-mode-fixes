@@ -1,0 +1,10 @@
+[Unit]
+Description=OpenRGB SDK server (sole owner of the RGB devices)
+Documentation=https://github.com/TuxLux40/gaming-mode-fixes/tree/main/rgb-sync
+
+[Service]
+ExecStart=/usr/bin/openrgb --server --noautoconnect
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,16 @@
+[project]
+name = "rgb-sync"
+version = "0.1.0"
+description = "Zoned screen-color sync for OpenRGB devices (gamescope + KDE portal capture)"
+requires-python = ">=3.12"
+dependencies = ["numpy", "openrgb-python"]
+
+[project.scripts]
+rgb-sync = "rgb_sync.__main__:main"
+
+[dependency-groups]
+dev = ["pytest"]
+
+[build-system]
+requires = ["uv_build>=0.8"]
+build-backend = "uv_build"

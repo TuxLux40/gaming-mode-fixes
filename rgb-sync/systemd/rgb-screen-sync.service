@@ -1,0 +1,14 @@
+[Unit]
+Description=Screen-reactive RGB: gamescope/KDE screen colors -> OpenRGB (fans + soundbar)
+Documentation=https://github.com/TuxLux40/gaming-mode-fixes/tree/main/rgb-sync
+Requires=openrgb-server.service
+After=openrgb-server.service
+
+[Service]
+ExecStart=%h/Projects/gaming-mode-fixes/rgb-sync/.venv/bin/rgb-sync run
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

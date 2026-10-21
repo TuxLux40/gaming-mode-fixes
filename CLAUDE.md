@@ -141,17 +141,23 @@ login-shell environment). Currently mitigated by the XDG autostart running
 `trcc gui --resume` which calls `ensure_daemon()` once — the race only manifests
 when multiple concurrent spawns happen before the socket is ready.
 
-### OpenRGB
+### OpenRGB + screen sync (rgb-sync/)
 
-Working. Detects Razer Leviathan V2 X soundbar, ASUS TUF B550M motherboard, and
-Logitech G915 keyboard. Writes are confirmed working (`openrgb --device 0 --mode
-Static --color FFFFFF` lights the soundbar underglow). No script needed.
+Documented in `rgb-sync/README.md` (rebuilt 2026-10-21 from a clean slate).
+`openrgb-server.service` (user) is the **only** process allowed to open the
+soundbar (1532:054a) and Aura USB (0b05:1939); detectors: only "Razer Leviathan
+V2 X" and "ASUS Aura Motherboard". `rgb-screen-sync.service` captures the screen
+(gamescope PipeWire node in Game Mode, KDE portal in Desktop Mode) and drives
+15 fan LEDs (ring) + 14 soundbar LEDs (diagonal) through the SDK. openrazer and
+Polychromatic are removed; the G915 is not managed by OpenRGB (onboard
+profiles / Solaar). Config: `~/.config/OpenRGB` and `~/.config/rgb-sync/config.toml`
+both live in `TuxLux40/dotfiles`.
 
 Known sharp edges:
+- Never script with `openrgb --client …`: it also runs local detection = second owner.
+- Proton/Wine (winebus) opens every accessible hidraw node, incl. these two.
+  Wallpaper Engine: RGB plugin off + `PROTON_DISABLE_HIDRAW=1 %command%`.
 - The Thermalright cooler LED ring is not supported by OpenRGB — use trcc.
-- OpenRGB can hang briefly when a USB peripheral is disconnected during a poll
-  cycle. Workaround: avoid disconnecting USB devices while the OpenRGB GUI or
-  server is actively writing.
 
 ## System context
 
