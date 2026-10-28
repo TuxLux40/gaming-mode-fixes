@@ -15,7 +15,8 @@ DEFAULTS = {
         "height": 36,
         # GStreamer videoscale method: "nearest-neighbour" is cheapest, "bilinear" smoother.
         "scale_method": "bilinear",
-        # PipeWire node gamescope publishes its composited output on.
+        # PipeWire node gamescope publishes its composited output on; "" disables
+        # the gamescope source (portal only).
         "gamescope_node": "gamescope",
         # How often to look for a source while none is up, and for a gamescope
         # node while on the portal.

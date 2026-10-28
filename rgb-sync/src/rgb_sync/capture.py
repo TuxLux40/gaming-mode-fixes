@@ -20,7 +20,9 @@ class SourceLost(Exception):
 
 
 def find_gamescope_node(name):
-    """PipeWire node id of gamescope's screen stream, or None."""
+    """PipeWire node id of gamescope's screen stream, or None (always None for an empty name)."""
+    if not name:
+        return None
     try:
         out = subprocess.run(["pw-dump"], capture_output=True, text=True, timeout=5).stdout
         objects = json.loads(out or "[]")
