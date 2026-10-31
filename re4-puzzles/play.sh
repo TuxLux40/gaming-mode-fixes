@@ -5,7 +5,7 @@
 #
 # usage: play.sh CUR_ROW CUR_COL  r,c r,c ...
 #   CUR_ROW/CUR_COL = where the puzzle's selection cursor is right now.
-# DISPLAY defaults to :1, the Xwayland server the game runs on in Gaming Mode
+# DISPLAY_GAME overrides the target display (default :1), the Xwayland server the game runs on in Gaming Mode
 # (:0 is Steam itself); check with: DISPLAY=:1 xdotool getactivewindow getwindowname
 set -eu
 export DISPLAY=${DISPLAY_GAME:-:1}
